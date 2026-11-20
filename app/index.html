@@ -1,41 +1,106 @@
-<!doctype html>
-<html lang="en" data-theme="paper">
+<!DOCTYPE html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Leonida Trophy Atlas — GTA VI Trophy Guide &amp; Tracker</title>
-<meta name="description" content="An offline guide and tracker for all 55 PlayStation 5 trophies of Grand Theft Auto VI: checklist, roadmap, missables and a cited guide for every trophy.">
-<link rel="icon" href="data:,">
+<title>Leonida Ledger — GTA VI Trophy Guide &amp; Tracker (all 55, cited)</title>
+<meta name="description" content="An offline guide and tracker for all 55 GTA VI trophies: 201 numbered steps, every step cited from 10 sources read 20 Nov 2026, with a platinum roadmap, missable watch list, source matrix and a computed audit strip.">
 <link rel="stylesheet" href="css/base.css">
-<script type="module" src="js/main.js"></script>
+<link rel="stylesheet" href="css/views.css">
 </head>
 <body>
-<header class="hero">
-  <div class="hero-inner">
-    <div class="brand">
-      <div class="mark" aria-hidden="true">✦</div>
-      <div class="brand-text">
-        <h1>Leonida Trophy Atlas</h1>
-        <p>Grand Theft Auto VI · PlayStation 5 · 55 trophies, one road to platinum</p>
-      </div>
-    </div>
-    <div class="progress-card" id="progressCard">
-      <div class="big"><span id="earnedCount">0</span><span class="of">/ 55 earned</span></div>
-      <div class="bar" role="progressbar" aria-label="Trophies earned"><div class="fill" id="progressFill"></div></div>
-      <div class="meta" id="progressMeta"></div>
-    </div>
-    <button class="theme-btn" id="themeToggle" type="button">Night mode</button>
+<div class="wrap">
+  <header class="site-head">
+    <h1>Leonida <span>Ledger</span></h1>
+    <p class="tagline">Every one of GTA VI's 55 PlayStation 5 trophies, with a cited guide in our own words. Works offline — no network requests, progress saved in your browser.</p>
+  </header>
+
+  <section id="audit-strip" class="audit-strip" aria-label="Audit strip"></section>
+
+  <div class="progress-row" role="group" aria-label="Platinum progress">
+    <span id="progress-count">0 / 55 earned</span>
+    <div class="progress-track"><div id="progress-bar" class="progress-fill" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+    <span id="progress-pct">0%</span>
   </div>
-  <nav class="tabs" id="tabs" aria-label="Views">
-    <button data-view="checklist" class="tab active" type="button">Checklist</button>
-    <button data-view="roadmap" class="tab" type="button">Roadmap</button>
-    <button data-view="missables" class="tab" type="button">Missables <span class="tab-badge">1</span></button>
-    <button data-view="sources" class="tab" type="button">Sources &amp; tools</button>
+
+  <nav class="main-nav" aria-label="Views">
+    <button type="button" class="nav-tab" data-view-tab="tracker">Tracker</button>
+    <button type="button" class="nav-tab" data-view-tab="roadmap">Roadmap</button>
+    <button type="button" class="nav-tab" data-view-tab="missables">Missables</button>
+    <button type="button" class="nav-tab" data-view-tab="sources">Sources &amp; matrix</button>
   </nav>
-</header>
-<main id="app" class="app" aria-live="polite"></main>
-<footer class="foot">
-  <p>Leonida Trophy Atlas — an unofficial, open-source guide. Trophy names and descriptions are PlayStation's; the guides are our own words, citing <a href="https://www.exophase.com/game/grand-theft-auto-vi-psn/trophies/">Exophase</a>, <a href="https://psnprofiles.com/trophies/43531-grand-theft-auto-vi">PSNProfiles</a> and <a href="https://www.powerpyx.com/gta-6-grand-theft-auto-vi-trophy-guide-roadmap/">PowerPyx</a>. Works fully offline — it makes no network requests. No Rockstar logo or artwork.</p>
-</footer>
+
+  <div class="toolbar" role="group" aria-label="Filters and progress tools">
+    <input type="search" id="search" placeholder="Search trophies, descriptions, guides…" aria-label="Search trophies">
+    <select id="filter-grade" aria-label="Filter by grade">
+      <option value="all">All grades</option>
+      <option value="platinum">Platinum</option>
+      <option value="gold">Gold</option>
+      <option value="silver">Silver</option>
+      <option value="bronze">Bronze</option>
+    </select>
+    <select id="filter-kind" aria-label="Filter by kind">
+      <option value="all">All kinds</option>
+      <option value="story">Story</option>
+      <option value="stranger">Stranger</option>
+      <option value="activity">Activity</option>
+      <option value="collectible">Collectible</option>
+      <option value="crime">Crime</option>
+      <option value="feat">Feat</option>
+      <option value="money">Money</option>
+      <option value="completion">100%</option>
+    </select>
+    <select id="filter-stage" aria-label="Filter by roadmap stage">
+      <option value="all">All stages</option>
+      <option value="1">Stage 1 · Story</option>
+      <option value="2">Stage 2 · 100%</option>
+      <option value="3">Stage 3 · Cleanup</option>
+      <option value="4">Stage 4 · Platinum</option>
+    </select>
+    <select id="filter-missable" aria-label="Filter by missable status">
+      <option value="all">Any status</option>
+      <option value="missable">Missable / watch</option>
+      <option value="hidden">Hidden</option>
+      <option value="unconfirmed">Unconfirmed</option>
+      <option value="dispute">Sources disagree</option>
+    </select>
+    <select id="filter-status" aria-label="Filter by earned status">
+      <option value="all">Earned + remaining</option>
+      <option value="earned">Earned</option>
+      <option value="remaining">Remaining</option>
+    </select>
+    <select id="filter-sort" aria-label="Sort order">
+      <option value="roadmap">Roadmap order</option>
+      <option value="az">A–Z</option>
+      <option value="rarest">Rarest first</option>
+      <option value="grade">By grade</option>
+    </select>
+    <label><input type="checkbox" id="spoiler-toggle" checked> Hide spoilers</label>
+    <button type="button" class="tool-btn" id="export-btn">Export progress</button>
+    <button type="button" class="tool-btn" id="import-btn">Import progress</button>
+    <input type="file" id="import-file" accept="application/json,.json" hidden>
+    <button type="button" class="tool-btn" id="share-btn">Copy share link</button>
+    <button type="button" class="tool-btn" id="reset-btn">Reset</button>
+    <span class="tool-note" id="import-note"></span>
+    <span class="tool-note" id="share-note"></span>
+  </div>
+
+  <main>
+    <section class="view" data-view="tracker">
+      <div class="tracker-layout">
+        <div id="tracker-list" class="tracker-list" aria-label="Trophy list"></div>
+        <aside id="detail-pane" class="detail-pane" aria-label="Trophy guide"></aside>
+      </div>
+    </section>
+    <section class="view" data-view="roadmap" id="roadmap-view" aria-label="Platinum roadmap"></section>
+    <section class="view" data-view="missables" id="missables-view" aria-label="Missable trophies"></section>
+    <section class="view" data-view="sources" id="sources-view" aria-label="Sources and source matrix"></section>
+  </main>
+
+  <footer class="site-foot">
+    <p>Unofficial fan guide. Trophy names and descriptions are PlayStation's, shown as published; all guide text is written for this entry. Sources were read 20 November 2026 and are cited beside every step. Rarity is the earn rate on Exophase, read the same day. No Rockstar logo or artwork is used. Deep links: <code>#view=roadmap&amp;t=t28&amp;filter=missable</code> · shared progress: <code>#earned=t02,t03</code>.</p>
+  </footer>
+</div>
+<script type="module" src="js/main.js"></script>
 </body>
 </html>

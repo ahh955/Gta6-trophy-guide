@@ -1,279 +1,216 @@
-// Leonida Trophy Atlas — boot and wiring: loads the data, reads the deep
-// links (?view=, ?trophy=, ?spoilers=, ?seed=demo), renders the current view
-// and answers every click from one delegated listener.
-import { TOTAL_TROPHIES } from './config.js';
-import { earnedCount, earnedPoints, loadTrophies } from './data.js';
+// main.js — wires the guide together: loads the data, renders the audit
+// strip, routes between the four views, and owns the filters, the progress
+// meter, the spoiler toggle, export/import and the shared-progress links.
+
+import { loadGuideData } from './data.js';
 import {
-  demoProgress,
+  DEMO_EARNED,
+  buildHash,
+  downloadText,
   exportProgress,
   importProgress,
-  loadProgress,
-  resetProgress,
-  saveProgress,
+  loadEarned,
+  loadSpoilersHidden,
+  parseHash,
+  saveEarned,
+  saveSpoilersHidden,
+  shareLink,
 } from './store.js';
-import { applyFilters, sortTrophies } from './filters.js';
-import {
-  checklistHtml,
-  missablesHtml,
-  roadmapHtml,
-  sourcesHtml,
-} from './views.js';
+import { computeAudit, renderAuditStrip } from './audit.js';
+import { computeMatrix, renderMatrix } from './matrix.js';
+import { renderRoadmap } from './roadmap.js';
+import { renderDetail, renderMissables, renderTrackerList } from './views.js';
 
-const PREFS_KEY = 'leonida-trophy-atlas-prefs';
+const VIEWS = ['tracker', 'roadmap', 'missables', 'sources'];
 
-const ctx = {
-  data: null,
+const state = {
   trophies: [],
-  progress: loadProgress(),
-  ui: {
-    view: 'checklist',
-    kind: 'all',
-    grade: 'all',
-    status: 'all',
-    sort: 'roadmap',
-    query: '',
-    spoilers: true,
-    selected: null,
-    revealed: new Set(),
-    theme: 'paper',
-    demo: false,
-  },
+  sources: [],
+  roadmap: null,
+  unread: [],
+  byId: new Map(),
+  sourceById: new Map(),
+  earned: loadEarned(),
+  spoilersHidden: loadSpoilersHidden(),
+  view: 'tracker',
+  selectedId: null,
+  filters: { grade: 'all', kind: 'all', stage: 'all', missable: 'all', status: 'all', query: '', sort: 'roadmap' },
 };
 
-function loadPrefs() {
-  try {
-    return JSON.parse(localStorage.getItem(PREFS_KEY) ?? '{}') ?? {};
-  } catch {
-    return {};
+const $ = (id) => document.getElementById(id);
+
+function applyDeepLink() {
+  const link = parseHash();
+  if (VIEWS.includes(link.view)) state.view = link.view;
+  if (link.trophy) state.selectedId = link.trophy;
+  if (link.filter === 'missable') state.filters.missable = 'missable';
+  if (link.filter === 'hidden') state.filters.missable = 'hidden';
+  if (link.filter === 'unconfirmed') state.filters.missable = 'unconfirmed';
+  if (link.earned) {
+    // A shared-progress link loads its ticks like an import.
+    state.earned = link.earned;
+    saveEarned(state.earned);
   }
+  // ?seed=demo pre-earns a spread of trophies, for screenshots and a quick look.
+  const query = new URLSearchParams(window.location.search);
+  if (query.get('seed') === 'demo' && state.earned.size === 0) {
+    state.earned = new Set(DEMO_EARNED);
+    saveEarned(state.earned);
+  }
+  if (query.get('view') && VIEWS.includes(query.get('view'))) state.view = query.get('view');
+  const qt = query.get('trophy');
+  if (qt && state.byId.has(Number(qt))) state.selectedId = Number(qt);
 }
 
-function savePrefs() {
-  try {
-    localStorage.setItem(
-      PREFS_KEY,
-      JSON.stringify({ theme: ctx.ui.theme, spoilers: ctx.ui.spoilers }),
-    );
-  } catch {
-    // Preferences are a nicety; the app works without them.
-  }
+function syncHash() {
+  const hash = buildHash(state.view, state.selectedId, state.filters.missable !== 'all' ? state.filters.missable : null);
+  if (window.location.hash !== hash) history.replaceState(null, '', hash || window.location.pathname + window.location.search);
 }
 
-function readDeepLinks() {
-  const params = new URLSearchParams(window.location.search);
-  const view = params.get('view');
-  if (['checklist', 'roadmap', 'missables', 'sources'].includes(view)) {
-    ctx.ui.view = view;
-  }
-  const trophy = Number(params.get('trophy'));
-  if (Number.isInteger(trophy) && trophy >= 1 && trophy <= TOTAL_TROPHIES) {
-    ctx.ui.selected = trophy;
-  }
-  const spoilers = params.get('spoilers');
-  if (spoilers === 'on') ctx.ui.spoilers = true;
-  if (spoilers === 'off') ctx.ui.spoilers = false;
-  if (params.get('seed') === 'demo') {
-    ctx.progress = demoProgress();
-    ctx.ui.demo = true;
-  }
+function renderProgress() {
+  const total = state.trophies.length;
+  const done = state.earned.size;
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  $('progress-count').textContent = `${done} / ${total} earned`;
+  $('progress-bar').style.width = `${pct}%`;
+  $('progress-bar').setAttribute('aria-valuenow', String(pct));
+  $('progress-pct').textContent = `${pct}%`;
 }
 
-function syncUrl() {
-  try {
-    const params = new URLSearchParams();
-    if (ctx.ui.view !== 'checklist') params.set('view', ctx.ui.view);
-    if (ctx.ui.selected) params.set('trophy', String(ctx.ui.selected));
-    if (!ctx.ui.spoilers) params.set('spoilers', 'off');
-    if (ctx.ui.demo) params.set('seed', 'demo');
-    const query = params.toString();
-    history.replaceState(null, '', query ? `?${query}` : window.location.pathname);
-  } catch {
-    // file:// and sandboxed frames may refuse replaceState; the app is fine.
-  }
-}
-
-function visibleTrophies() {
-  const filtered = applyFilters(ctx.trophies, ctx.ui, ctx.progress);
-  return sortTrophies(filtered, ctx.ui.sort);
-}
-
-function updateHeader() {
-  const earned = earnedCount(ctx.progress);
-  const points = earnedPoints(ctx.trophies, ctx.progress);
-  const pct = Math.round((100 * earned) / TOTAL_TROPHIES);
-  document.getElementById('earnedCount').textContent = String(earned);
-  document.getElementById('progressFill').style.width = `${pct}%`;
-  document.getElementById('progressMeta').textContent =
-    `${pct}% complete · ${points.toLocaleString()} PSN points · ${TOTAL_TROPHIES - earned} to go`;
-  document.querySelectorAll('.tab').forEach((tab) => {
-    tab.classList.toggle('active', tab.dataset.view === ctx.ui.view);
+function renderNav() {
+  document.querySelectorAll('[data-view-tab]').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.viewTab === state.view);
+    btn.setAttribute('aria-current', btn.dataset.viewTab === state.view ? 'page' : 'false');
+  });
+  document.querySelectorAll('.view').forEach((section) => {
+    section.classList.toggle('active', section.dataset.view === state.view);
   });
 }
 
-function render() {
-  const app = document.getElementById('app');
-  if (ctx.ui.view === 'roadmap') app.innerHTML = roadmapHtml(ctx);
-  else if (ctx.ui.view === 'missables') app.innerHTML = missablesHtml(ctx);
-  else if (ctx.ui.view === 'sources') app.innerHTML = sourcesHtml(ctx);
-  else app.innerHTML = checklistHtml(ctx, visibleTrophies());
-  updateHeader();
-  syncUrl();
+function renderTracker() {
+  renderTrackerList($('tracker-list'), state.trophies, state, {
+    onOpen: (id) => {
+      state.selectedId = id;
+      renderDetail($('detail-pane'), state.byId.get(id), state.sourceById, state);
+      renderTracker();
+      syncHash();
+      $('detail-pane').scrollIntoView({ block: 'nearest' });
+    },
+    onToggle: (id, checked) => {
+      if (checked) state.earned.add(id);
+      else state.earned.delete(id);
+      saveEarned(state.earned);
+      renderProgress();
+      renderDetail($('detail-pane'), state.selectedId ? state.byId.get(state.selectedId) : null, state.sourceById, state);
+      renderTracker();
+    },
+  });
+  renderDetail($('detail-pane'), state.selectedId ? state.byId.get(state.selectedId) : null, state.sourceById, state);
 }
 
-function applyTheme() {
-  document.documentElement.dataset.theme = ctx.ui.theme;
-  document.getElementById('themeToggle').textContent =
-    ctx.ui.theme === 'night' ? 'Paper mode' : 'Night mode';
-}
-
-function toggleEarned(id) {
-  if (ctx.progress.earned[id]) delete ctx.progress.earned[id];
-  else ctx.progress.earned[id] = true;
-  if (!ctx.ui.demo) saveProgress(ctx.progress);
-  render();
-}
-
-function selectTrophy(id, { scroll = false } = {}) {
-  ctx.ui.selected = id;
-  ctx.ui.view = 'checklist';
-  render();
-  if (scroll) {
-    document.querySelector(`[data-row="${id}"]`)?.scrollIntoView({ block: 'nearest' });
+function renderCurrentView() {
+  renderNav();
+  renderProgress();
+  if (state.view === 'tracker') renderTracker();
+  if (state.view === 'roadmap') {
+    renderRoadmap($('roadmap-view'), state.trophies, state.roadmap, state.earned, (id) => {
+      state.view = 'tracker';
+      state.selectedId = id;
+      renderCurrentView();
+      syncHash();
+    });
+  }
+  if (state.view === 'missables') {
+    renderMissables($('missables-view'), state.trophies, (id) => {
+      state.view = 'tracker';
+      state.selectedId = id;
+      renderCurrentView();
+      syncHash();
+    });
+  }
+  if (state.view === 'sources') {
+    renderMatrix($('sources-view'), computeMatrix(state.trophies, state.sources), state.trophies.length, state.unread);
   }
 }
 
-function bindEvents() {
-  document.addEventListener('click', (event) => {
-    const tab = event.target.closest('.tab');
-    if (tab) {
-      ctx.ui.view = tab.dataset.view;
-      render();
-      return;
+function bindControls() {
+  document.querySelectorAll('[data-view-tab]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      state.view = btn.dataset.viewTab;
+      renderCurrentView();
+      syncHash();
+    });
+  });
+  $('search').addEventListener('input', (e) => {
+    state.filters.query = e.target.value.trim();
+    renderTracker();
+  });
+  for (const key of ['grade', 'kind', 'stage', 'missable', 'status', 'sort']) {
+    $(`filter-${key}`).addEventListener('change', (e) => {
+      state.filters[key] = e.target.value;
+      renderTracker();
+      syncHash();
+    });
+  }
+  $('spoiler-toggle').addEventListener('change', (e) => {
+    state.spoilersHidden = e.target.checked;
+    saveSpoilersHidden(state.spoilersHidden);
+    renderTracker();
+  });
+  $('export-btn').addEventListener('click', () => {
+    downloadText('gta6-trophy-progress.json', exportProgress(state.earned));
+  });
+  $('import-btn').addEventListener('click', () => $('import-file').click());
+  $('import-file').addEventListener('change', async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    try {
+      state.earned = importProgress(await file.text());
+      saveEarned(state.earned);
+      renderCurrentView();
+      $('import-note').textContent = `Imported ${state.earned.size} earned trophies.`;
+    } catch (err) {
+      $('import-note').textContent = `Import failed: ${err.message}`;
     }
-    const reveal = event.target.closest('[data-reveal]');
-    if (reveal) {
-      ctx.ui.revealed.add(Number(reveal.dataset.reveal));
-      ctx.ui.selected = Number(reveal.dataset.reveal);
-      render();
-      return;
-    }
-    const toggle = event.target.closest('[data-toggle-earned]');
-    if (toggle) {
-      toggleEarned(Number(toggle.dataset.toggleEarned));
-      return;
-    }
-    const goto = event.target.closest('[data-goto]');
-    if (goto) {
-      selectTrophy(Number(goto.dataset.goto), { scroll: true });
-      return;
-    }
-    if (event.target.closest('[data-export]')) {
-      exportProgress(ctx.progress);
-      return;
-    }
-    if (event.target.closest('[data-import]')) {
-      document.getElementById('importFile')?.click();
-      return;
-    }
-    if (event.target.closest('[data-reset]')) {
-      if (window.confirm('Reset all earned trophies and notes?')) {
-        ctx.progress = resetProgress();
-        ctx.ui.demo = false;
-        render();
-      }
-      return;
-    }
-    if (event.target.closest('[data-clear-filters]')) {
-      Object.assign(ctx.ui, { kind: 'all', grade: 'all', status: 'all', query: '' });
-      render();
-      return;
-    }
-    if (event.target.closest('#themeToggle')) {
-      ctx.ui.theme = ctx.ui.theme === 'night' ? 'paper' : 'night';
-      applyTheme();
-      savePrefs();
-      return;
-    }
-    const row = event.target.closest('[data-row]');
-    if (row && !event.target.closest('input, button, a, select, textarea')) {
-      ctx.ui.selected = Number(row.dataset.row);
-      render();
+    e.target.value = '';
+  });
+  $('share-btn').addEventListener('click', async () => {
+    const link = shareLink(state.earned);
+    try {
+      await navigator.clipboard.writeText(link);
+      $('share-note').textContent = 'Shared-progress link copied.';
+    } catch {
+      $('share-note').textContent = link;
     }
   });
-
-  document.addEventListener('keydown', (event) => {
-    const row = event.target.closest?.('[data-row]');
-    if (row && (event.key === 'Enter' || event.key === ' ')) {
-      event.preventDefault();
-      ctx.ui.selected = Number(row.dataset.row);
-      render();
-    }
+  $('reset-btn').addEventListener('click', () => {
+    state.earned = new Set();
+    saveEarned(state.earned);
+    renderCurrentView();
   });
-
-  document.addEventListener('change', (event) => {
-    const check = event.target.closest('[data-check]');
-    if (check) {
-      toggleEarned(Number(check.dataset.check));
-      return;
-    }
-    const { id, value } = event.target;
-    if (id === 'kindFilter') ctx.ui.kind = value;
-    else if (id === 'gradeFilter') ctx.ui.grade = value;
-    else if (id === 'statusFilter') ctx.ui.status = value;
-    else if (id === 'sortSelect') ctx.ui.sort = value;
-    else if (id === 'spoilerToggle') {
-      ctx.ui.spoilers = event.target.checked;
-      savePrefs();
-    } else if (id === 'importFile') {
-      const file = event.target.files?.[0];
-      if (file) {
-        importProgress(file)
-          .then((clean) => {
-            ctx.progress = clean;
-            saveProgress(clean);
-            render();
-          })
-          .catch(() => window.alert('That file is not a Leonida Trophy Atlas export.'));
-      }
-      return;
-    } else {
-      return;
-    }
-    render();
+  $('detail-pane').addEventListener('detail-close', () => {
+    state.selectedId = null;
+    renderTracker();
+    syncHash();
   });
-
-  document.addEventListener('input', (event) => {
-    if (event.target.id === 'searchBox') {
-      ctx.ui.query = event.target.value;
-      render();
-      const box = document.getElementById('searchBox');
-      box?.focus();
-      box?.setSelectionRange(box.value.length, box.value.length);
-      return;
-    }
-    if (event.target.id === 'noteBox') {
-      const id = Number(event.target.dataset.note);
-      const value = event.target.value.trim();
-      if (value) ctx.progress.notes[id] = event.target.value;
-      else delete ctx.progress.notes[id];
-      if (!ctx.ui.demo) saveProgress(ctx.progress);
-    }
+  window.addEventListener('hashchange', () => {
+    applyDeepLink();
+    renderCurrentView();
   });
 }
 
-async function boot() {
-  const prefs = loadPrefs();
-  if (prefs.theme === 'night' || prefs.theme === 'paper') ctx.ui.theme = prefs.theme;
-  if (typeof prefs.spoilers === 'boolean') ctx.ui.spoilers = prefs.spoilers;
-  readDeepLinks();
-  applyTheme();
-  ctx.data = await loadTrophies();
-  ctx.trophies = ctx.data.trophies ?? [];
-  bindEvents();
-  render();
+async function init() {
+  const data = await loadGuideData();
+  Object.assign(state, data);
+  applyDeepLink();
+  renderAuditStrip($('audit-strip'), computeAudit(state.trophies, state.sources));
+  $('spoiler-toggle').checked = state.spoilersHidden;
+  $('filter-missable').value = state.filters.missable;
+  bindControls();
+  renderCurrentView();
+  syncHash();
 }
 
-boot().catch((error) => {
-  document.getElementById('app').innerHTML =
-    `<div class="empty">The trophy list did not load. ${error.message} — serve app/ with a static server (node serve.ts) and reload.</div>`;
+init().catch((err) => {
+  $('tracker-list').innerHTML = `<p class="empty">The guide data failed to load: ${err.message}. Serve the app/ folder over HTTP (node serve.ts) and reload.</p>`;
 });

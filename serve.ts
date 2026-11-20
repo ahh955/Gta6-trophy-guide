@@ -59,5 +59,5 @@ createServer((req, res) => {
   });
   createReadStream(file).pipe(res);
 }).listen(port, '127.0.0.1', () => {
-  console.log(`Leonida Trophy Atlas is on http://localhost:${port}`);
+  console.log(`Leonida Ledger serving app/ at http://localhost:${port}/`);
 });
