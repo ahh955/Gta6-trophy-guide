@@ -3,125 +3,64 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Leonida Trophy Ledger — GTA VI Trophy Guide &amp; Tracker</title>
-<meta name="description" content="An offline, open-source guide and tracker for all 55 GTA VI trophies: 448 cited claims, 30 source disputes, a 5-stage roadmap and a points system.">
-<link rel="stylesheet" href="css/style.css">
+<title>Leonida Trophy Ledger — GTA VI Trophy Guide &amp; Tracker (all 55, cited)</title>
+<meta name="description" content="Offline GTA VI trophy guide and tracker: all 55 PlayStation trophies with cited guides, roadmap, missables, disputes and progress tracking.">
+<link rel="stylesheet" href="css/app.css">
 </head>
 <body>
-<header class="top">
-  <div class="top-inner">
-    <div class="brand">
+<header id="topbar">
+  <div class="brand">
+    <div class="mark">L</div>
+    <div>
       <h1>Leonida Trophy Ledger</h1>
-      <p class="subtitle">GTA VI &middot; all 55 PlayStation 5 trophies &middot; 1 Platinum / 2 Gold / 6 Silver / 46 Bronze &middot; 28 hidden</p>
-    </div>
-    <div class="scoreboard" id="scoreboard">
-      <div class="score-main"><span id="points-earned">0</span><span class="score-of">/ 1,350 pts</span></div>
-      <div class="score-sub"><span id="trophies-earned">0 / 55 trophies</span> &middot; <span id="points-pct">0%</span></div>
-      <div class="bar"><div class="bar-fill" id="points-bar"></div></div>
-      <div class="chapters" id="chapter-progress"></div>
+      <p>GTA VI · PS5 · 55 trophies · every step cited · works offline</p>
     </div>
   </div>
-  <div class="audit-strip" id="audit-strip"></div>
-  <nav class="tabs" id="tabs" aria-label="Guide sections">
-    <button data-tab="tracker" class="tab active">Tracker</button>
-    <button data-tab="nextup" class="tab">Next Up</button>
-    <button data-tab="roadmap" class="tab">Roadmap</button>
-    <button data-tab="missables" class="tab">Missables <span class="tab-badge" id="missable-count"></span></button>
-    <button data-tab="disputes" class="tab">Disputes <span class="tab-badge">30</span></button>
-    <button data-tab="sources" class="tab">Sources <span class="tab-badge">20</span></button>
-    <button data-tab="audit" class="tab">Audit</button>
-  </nav>
+  <div class="progress-block">
+    <div class="earned-line"><strong id="earnedCount">0 / 55 earned</strong><span id="pointsLine">0 / 1,350 pts</span><span id="gradeLine">P 0/1 · G 0/2 · S 0/6 · B 0/46</span></div>
+    <div class="bar"><div id="earnedBar" class="fill" style="width:0%"></div></div>
+    <div id="chapterBars" class="chapter-bars"></div>
+  </div>
+  <div class="top-actions">
+    <label class="shield"><input type="checkbox" id="spoilerShield" checked> Spoiler shield</label>
+    <button id="exportBtn" type="button">Export</button>
+    <button id="importBtn" type="button">Import</button>
+    <input type="file" id="importFile" accept="application/json,.json" hidden>
+    <span class="saved" id="savedNote">✓ Saved in this browser</span>
+  </div>
 </header>
 
-<main>
-  <section id="view-tracker" class="view active">
-    <div class="toolbar">
-      <input id="search" type="search" placeholder="Search trophies, missions, places…" aria-label="Search trophies">
-      <select id="filter-grade" aria-label="Filter by grade">
-        <option value="">All grades</option>
-        <option value="platinum">Platinum</option>
-        <option value="gold">Gold</option>
-        <option value="silver">Silver</option>
-        <option value="bronze">Bronze</option>
-      </select>
-      <select id="filter-kind" aria-label="Filter by kind">
-        <option value="">All kinds</option>
-        <option value="story">Story</option>
-        <option value="character">Character quests</option>
-        <option value="activity">Activities</option>
-        <option value="collectible">Collectibles</option>
-        <option value="crime">Crime &amp; robberies</option>
-        <option value="combat">Combat &amp; driving</option>
-        <option value="completion">Completion</option>
-        <option value="misc">Miscellaneous</option>
-      </select>
-      <select id="filter-status" aria-label="Filter by status">
-        <option value="">Earned &amp; remaining</option>
-        <option value="remaining">Remaining only</option>
-        <option value="earned">Earned only</option>
-        <option value="missable">Missable / at-risk only</option>
-        <option value="counter">Counters only</option>
-      </select>
-      <select id="sort" aria-label="Sort trophies">
-        <option value="roadmap">Sort: roadmap order</option>
-        <option value="grade">Sort: grade</option>
-        <option value="rarity">Sort: rarest first</option>
-        <option value="points">Sort: most points</option>
-        <option value="name">Sort: name A–Z</option>
-      </select>
-      <label class="spoiler-toggle"><input type="checkbox" id="spoiler-toggle" checked> Spoiler-safe: hide hidden story trophies until earned</label>
-    </div>
-    <div class="toolbar sub">
-      <button id="btn-export">Export progress</button>
-      <button id="btn-import">Import progress</button>
-      <input type="file" id="import-file" accept="application/json,.json" hidden>
-      <button id="btn-reset">Reset progress</button>
-      <span class="toolbar-note" id="filter-note"></span>
-    </div>
-    <div id="trophy-list" class="trophy-list"></div>
-  </section>
+<div id="auditStrip" class="audit"></div>
 
-  <section id="view-nextup" class="view">
-    <h2>Next Up — your roadmap order</h2>
-    <p class="lede">The next trophies to chase, in the order the roadmap recommends. Earned ones are struck through; the one missable trophy sits at step 2 on purpose. Re-ordering happens automatically as you tick things off.</p>
-    <ol id="nextup-list" class="nextup"></ol>
-  </section>
+<nav id="tabs" class="tabs">
+  <button data-view="tracker" class="tab active" type="button">Tracker</button>
+  <button data-view="roadmap" class="tab" type="button">Roadmap</button>
+  <button data-view="missables" class="tab" type="button">Missables <span id="missCount"></span></button>
+  <button data-view="disputes" class="tab" type="button">Disputes <span id="dispCount"></span></button>
+  <button data-view="sources" class="tab" type="button">Sources</button>
+</nav>
 
-  <section id="view-roadmap" class="view">
-    <h2>Roadmap to the Platinum — 5 stages, ~200 hours</h2>
-    <p class="lede">Built from the official descriptions and the guides read 21 Nov 2026. Story 60–80 hours (PowerPyx), the 100% checklist about 100 hours (PowerPyx / KeenGamer), strangers and cleanup 10–20 hours (KeenGamer). One playthrough is enough; there are no online trophies and no mission replay.</p>
-    <div id="roadmap-stages" class="stages"></div>
-  </section>
+<div id="filterBar" class="filters">
+  <div class="filter-group" id="kindFilters"></div>
+  <div class="filter-group" id="gradeFilters">
+    <button data-grade="" class="chip active" type="button">All grades</button>
+    <button data-grade="platinum" class="chip" type="button">P</button>
+    <button data-grade="gold" class="chip" type="button">G</button>
+    <button data-grade="silver" class="chip" type="button">S</button>
+    <button data-grade="bronze" class="chip" type="button">B</button>
+  </div>
+  <input id="searchBox" type="search" placeholder="Search name, mission, keyword…" aria-label="Search trophies">
+</div>
 
-  <section id="view-missables" class="view">
-    <h2>Missable &amp; at-risk trophies — 14 flagged</h2>
-    <p class="lede">Only one trophy is truly missable: Positive Mental Attitude, for the Chapter 1 balcony meditation. The other thirteen have windows that open with a mission, a character or a piece of gear — start them as soon as they appear and they stay safe.</p>
-    <div id="missable-list" class="missable-list"></div>
-  </section>
-
-  <section id="view-disputes" class="view">
-    <h2>Where the sources disagree — 30 disputes</h2>
-    <p class="lede"><strong>SOURCES DIFFER — BOTH VERSIONS SHOWN.</strong> Launch-week guides do not agree on everything. Each dispute below shows both cited versions and our verdict, so you can judge for yourself.</p>
-    <div id="dispute-list" class="dispute-list"></div>
-  </section>
-
-  <section id="view-sources" class="view">
-    <h2>Sources — 20 guides and lists, all read 21 Nov 2026</h2>
-    <p class="lede">Every claim in this guide cites its sources by number, for example [S1]. All guide text is our own words; sources are cited, never copied. Rarity figures come from Exophase, read 21 Nov 2026.</p>
-    <div id="source-table"></div>
-    <h3>Source matrix — how many claims each source backs</h3>
-    <div id="source-matrix"></div>
-  </section>
-
-  <section id="view-audit" class="view">
-    <h2>Audit — what this guide claims, and how it is checked</h2>
-    <div id="audit-body"></div>
-  </section>
+<main id="layout">
+  <aside id="listPane" aria-label="Trophy list"></aside>
+  <section id="detailPane" aria-label="Trophy guide"></section>
+  <aside id="sidePane" aria-label="Next up and sources"></aside>
 </main>
 
-<footer>
-  <p>Leonida Trophy Ledger — an offline, open-source GTA VI trophy guide. Works with the network off; it fetches nothing but its own files. No Rockstar logo or official artwork. Trophy names and descriptions are as PlayStation publishes them; all guide text is original. MIT licensed.</p>
-  <p>Sources were read 21 Nov 2026. Five hidden trophies were still unsolved on that date: In The Beginning…, Capital Offense, Bad Luck, I Guess, The Truth Is Out There and Ten Pin.</p>
+<footer id="foot">
+  <span>Guide text is our own words, written for this entry. Official names and descriptions as PlayStation publishes them (Exophase, read 21 Nov 2026). No Rockstar logo or artwork. All 20 sources read 21 Nov 2026; every claim cites its sources.</span>
+  <span id="footCounts"></span>
 </footer>
 
 <script type="module" src="js/app.js"></script>
