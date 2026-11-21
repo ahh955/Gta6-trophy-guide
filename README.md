@@ -1,47 +1,32 @@
-# Leonida Ledger
+# Leonida Trophy Ledger — GTA VI Trophy Guide & Tracker
 
-[![make.fun](https://make.fun/badge/gta6-trophy-guide-01.svg)](https://make.fun/bounty/gta6-trophy-guide-01)
-[![rank](https://make.fun/badge/gta6-trophy-guide-01/ahh955/Gta6-trophy-guide/rank.svg)](https://make.fun/bounty/gta6-trophy-guide-01)
-[![reward](https://make.fun/badge/gta6-trophy-guide-01/ahh955/Gta6-trophy-guide/reward.svg)](https://make.fun/bounty/gta6-trophy-guide-01)
+[![Competition](https://make.fun/badge/gta6-trophy-guide-01.svg)](https://make.fun/bounty/gta6-trophy-guide-01)
+[![Rank](https://make.fun/badge/gta6-trophy-guide-01/ahh955/Gta6-trophy-guide/rank.svg)](https://make.fun/bounty/gta6-trophy-guide-01/leaderboard)
+[![Reward](https://make.fun/badge/gta6-trophy-guide-01/ahh955/Gta6-trophy-guide/reward.svg)](https://make.fun/bounty/gta6-trophy-guide-01)
 
-An offline guide and tracker for all **55 PlayStation 5 trophies** of Grand Theft Auto VI — built for [make.fun's GTA 6 trophy guide bounty](https://make.fun/bounty/gta6-trophy-guide-01). Static files, no build step, no network requests: serve `app/` anywhere and it works with the network off.
+An offline, open-source guide and tracker for all **55 GTA VI trophies** (1 Platinum / 2 Gold / 6 Silver / 46 Bronze, 28 hidden), built for the make.fun bounty [gta6-trophy-guide-01](https://make.fun/bounty/gta6-trophy-guide-01).
 
-## What it does
+## What is inside
 
-- **Cited guides for every trophy** — 201 numbered steps across the 55 trophies, and *every* step cites numbered sources (162 steps cite two or more). All 10 sources were opened and read on 20 November 2026; a page that refused to load (PSNProfiles, HTTP 403) is listed as unread and never cited.
-- **Source matrix** — per source, how many of the 55 guides cite it, counted from the data at load, with read dates, depth notes, and what each source was used for.
-- **Audit strip** — counts computed from the data at load and shown on the cover: totals, grades, cited claims, multi- vs single-source claims, unconfirmed, distinct hosts, total steps, source count, hidden, missable.
-- **Disputes called out** — where the sources genuinely disagree, the trophy says so instead of picking a winner (22 trophies): the 200h vs 300h+ platinum, 12 vs 2 shooting ranges, the partner-unlock mission, the five methods PowerPyx confirmed that other guides still list as unconfirmed, and more.
-- **Missables watch list** — the one truly missable trophy (Positive Mental Attitude, Chapter 1 balcony meditation), the time-sensitive Yago race, and five stranger chains carrying a single-source warning; everything else is honestly marked not missable.
-- **Roadmap** — four stages to the platinum (story 60–80h → 100% checklist ~100h → strangers & cleanup 10–20h → platinum), difficulty 4/10, one playthrough, no online trophies, manual-save-per-chapter advice, explicit trophy lists per stage.
-- **Tracker** — checklist with progress saved in the browser (localStorage), export/import progress JSON, a progress meter, filters (grade, kind, stage, missable, hidden, unconfirmed, disputes, earned status, search), four sort orders, and rarity (earn-rate %) per trophy.
-- **Spoiler masking** — the 28 hidden trophies stay masked until earned, with a toggle and click-to-reveal.
-- **Deep links & shared progress** — `#view=roadmap&t=t28&filter=missable`, and `#earned=t02,t03` links that load ticks like an import.
+- **448 cited claims** — every guide step and fact cites its sources by number, e.g. [S1]. 295 claims are backed by 2 or more sources; 0 claims are uncited.
+- **20 sources**, all read 21 Nov 2026 (13 opened in full, 7 read via search results) — PowerPyx, Push Square, KeenGamer, GTABase, Gamemapa, Mobalytics, Exophase, Insider Gaming, GGRecon, GamesFuze, EGamers, TechTroduce, Leonida Unlocked and seven more.
+- **30 source disputes** — where launch-week guides disagree, both cited versions are shown with an "Our call" verdict.
+- **26 interactive YOUR COUNT trackers** — − / + counters with progress bars for every grind and count trophy (stunts, races, cards, scans, vaults, cash, and more).
+- **14 missable / at-risk trophies** — with the window that opens and shuts, plus "Protect it" advice. Only one trophy is truly missable: Positive Mental Attitude (Chapter 1 balcony meditation).
+- **NEXT UP panel** — the next trophies in roadmap order, with stage, chapter and missable flags, updating as you tick things off.
+- **5-stage roadmap** — ~200 hours, from the story (Chapters 1–5) through the 100% checklist to the Platinum.
+- **1,350-point system** (Platinum 220, Gold 85, Silver 45, Bronze 15) and per-chapter progress in the header.
+- **Rarity %** on all 55 trophies (Exophase, read 21 Nov 2026), spoiler masking of hidden story trophies until earned, filters, search, sort, export/import of progress, an audit strip and a per-source claim matrix, and deep links to every trophy (#t1 … #t55).
 
-## Data
-
-Checked 20 November 2026 (the day after launch) against ten sources, all read that day:
-
-- [PowerPyx](https://www.powerpyx.com/gta-6-grand-theft-auto-vi-trophy-guide-roadmap/) — full guide & roadmap, per-trophy methods
-- [GTABase](https://www.gtabase.com/articles/gta-6/gta-6-achievements-trophies-list-ps5-xbox-series) — full list, Gamerscore, per-trophy tips
-- [KeenGamer](https://www.keengamer.com/articles/guides/gta-6-trophy-guide-platinum-roadmap-all-55-trophies/) — roadmap, 100% threshold tables
-- [OutputLag](https://outputlag.com/guides/gta-6-trophy-list/) — list, Gamerscore, Yago warning
-- [GTA-Zone](https://gta-zone.com/news/gta-6-trophies-achievements/) — list, Gamerscore, roadmap
-- [eGamers](https://egamers.io/gta-6-trophy-list-all-55-trophies-and-achievements-plus-the-hardest-ones/) — list, disagreements, unconfirmed five
-- [Push Square](https://www.pushsquare.com/guides/gta-6-trophy-guide-and-roadmap) — WIP guide, 300h estimate, two named ranges
-- [GTA Vibes](https://www.gtavibes.com/guides/gta-6-trophy-list-achievements) — list, roadmap
-- [GTASpotter](https://gtaspotter.com/en/guides/gta-6-trophies-and-achievements/) — list, all 80 challenges
-- [Exophase](https://www.exophase.com/game/grand-theft-auto-vi-psn/trophies/) — earn-rate % per trophy
-
-The list: 1 platinum, 2 gold, 6 silver, 46 bronze; 28 hidden; 0 online. Three trophies are still unconfirmed (Strangers & Freaks' remaining strands, Fair Game's animal, Bad Luck, I Guess's method) and say so plainly.
+Five hidden trophies were still unsolved on 21 Nov 2026 (In The Beginning…, Capital Offense, Bad Luck, I Guess, The Truth Is Out There, Ten Pin) — the guide says so plainly and gives the best current lead instead of inventing a method.
 
 ## Run it
 
 ```sh
-node serve.ts        # serves app/ on http://localhost:8080
+node serve.ts        # then open http://localhost:8080
 ```
 
-Deep links: `#view=roadmap`, `#view=missables`, `#view=sources`, `#t=t28`, `#earned=t02,t03`. `?seed=demo` pre-earns 13 trophies for a quick look.
+No build step, no dependencies, no network: the app loads only its own files under `app/`. Source links open only when the reader follows them.
 
 ## Hand it in
 
@@ -49,8 +34,30 @@ Deep links: `#view=roadmap`, `#view=missables`, `#view=sources`, `#t=t28`, `#ear
 mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 ```
 
-`main.ts` copies `app/` and `screenshots/` to the output directory and writes `dossier.json` with the kit's `buildDossier`.
+`main.ts` copies `app/` and `screenshots/` to the output directory and writes `dossier.json` with the vendored make.fun library.
+
+## Layout
+
+```
+app/
+  index.html            single-page app: Tracker / Next Up / Roadmap / Missables / Disputes / Sources / Audit
+  css/style.css         original dark sunset theme
+  js/app.js             loads the data, renders the views, saves progress in localStorage
+  data/
+    trophies.json       all 55 trophies: guide text, 358 cited claims, rarity, points, counters, windows
+    sources.json        20 sources with site, URL and read date
+    disputes.json       30 disputes, each with two cited versions and a verdict
+    roadmap.json        5 stages with hours + trophy lists, and the NEXT UP order
+screenshots/           4 screenshots of the finished app (1280×720)
+main.ts                 entrypoint: copies app/ + screenshots/ and writes dossier.json
+serve.ts                tiny static server for local use
+vendor/makefun-frontend.ts   kit vendor library, unchanged
+```
+
+## Sources
+
+All guide text is original — sources are cited, never copied. Trophy names and descriptions are as PlayStation publishes them (including the masked name “T**s Ass Drug Money”). Rarity figures are Exophase's tracked percentages, read 21 Nov 2026, two days after launch; early figures that will rise fast. See the Sources tab in the app for the full list with links and read dates.
 
 ## License
 
-MIT — see [LICENSE](LICENSE). An unofficial fan guide: trophy names and descriptions are PlayStation's; no Rockstar logo or artwork is used.
+MIT — see [LICENSE](LICENSE).
